@@ -47,7 +47,7 @@ dsh plugin --profile desktop add "<本仓库的绝对路径>"
 
 每个已完成回合的操作行**上方**多出一行金额（不占用 hover 才出现的操作行）：
 
-![每轮花费行](https://raw.githubusercontent.com/littlefish04/dsh-turn-price/main/assets/shot-cost-row.png)
+![每轮花费行](https://cdn.jsdelivr.net/gh/littlefish04/dsh-turn-price@main/assets/shot-cost-row.png)
 
 > 上图里那一行由四部分组成：`本轮花费` + 金额 `¥0.0874` + 徽标 `限时优惠` + 展开箭头 `▼`。
 > 徽标只在命中规则时出现，显示规则名，系数不是 1 时写成 `高峰×2` 这样。
@@ -65,7 +65,7 @@ dsh plugin --profile desktop add "<本仓库的绝对路径>"
 
 设置 → **每轮花费**：按模型分页签维护价格表，改完保存，**所有历史回合的金额立即重算**。
 
-![设置页：每轮花费](https://raw.githubusercontent.com/littlefish04/dsh-turn-price/main/assets/shot-settings.png)
+![设置页：每轮花费](https://cdn.jsdelivr.net/gh/littlefish04/dsh-turn-price@main/assets/shot-settings.png)
 
 ## 它是怎么算的
 
