@@ -1,0 +1,86 @@
+{
+  "name": "dsh-turn-price",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness (dsh) plugin: shows the CNY cost of every completed turn under the turn, from per-model cache-hit / cache-miss / cache-write / output rates, with weekly peak-valley multipliers and limited-time promo windows.",
+  "license": "MIT",
+  "author": "littlefish04",
+  "type": "module",
+  "main": "./lib/index.js",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./locale/*.json": "./locale/*.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "locale",
+    "icon.svg",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0-rc.1 <0.3.0"
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    }
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-client-ui-settings": ">=0.2.0-rc.1 <0.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-client-ui-settings": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/littlefish04/dsh-turn-price.git"
+  },
+  "homepage": "https://github.com/littlefish04/dsh-turn-price#readme",
+  "bugs": {
+    "url": "https://github.com/littlefish04/dsh-turn-price/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "deepseek",
+    "cordis",
+    "cost",
+    "price",
+    "pricing",
+    "token",
+    "usage",
+    "billing",
+    "cny",
+    "peak",
+    "off-peak"
+  ],
+  "scripts": {
+    "check": "node --check lib/index.js && node --check lib/client.js",
+    "prepack": "npm run check"
+  }
+}

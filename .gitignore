@@ -1,0 +1,20 @@
+# 依赖（本插件无构建步骤：lib/ 既是源码也是发布产物，必须提交）
+node_modules/
+
+# 发布/打包产物
+*.tgz
+*.tar.gz
+package/ 
+
+# 本地参考检出（仅开发仓库里有，见 PUBLISHING.md）
+.ref/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+PUBLISHING.md

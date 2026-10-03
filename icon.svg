@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="dsh-turn-price">
+  <title>dsh-turn-price</title>
+  <rect x="4" y="4" width="120" height="120" rx="28" fill="#4176e6"/>
+  <g fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M40 34 L64 66 L88 34"/>
+    <path d="M64 66 L64 96"/>
+    <path d="M46 72 L82 72"/>
+    <path d="M46 86 L82 86"/>
+  </g>
+</svg>

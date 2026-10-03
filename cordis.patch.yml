@@ -1,0 +1,16 @@
+# dsh-turn-price bundle layer — applied when a profile lists this bundle
+# (package.json 的 dsh.bundle.patch 指向本文件)。
+# `name` 必须是**包名**（从 profile 的 node_modules 解析），不是相对路径；
+# 改了 package.json 的 name，这里必须同步改，否则 Loader 找不到模块。
+#
+# 重要：这里的 `id` 就是本插件在 0.2 设置模型里的**设置命名空间**
+# （@deepseek-ai/dsh-settings 的 describe() 用 entry.options.id 作为 ns），
+# 客户端因此必须调用 ctx.configForms.get('turn-cost')。
+# 这个 id 与包名无关，保持 `turn-cost` 不变以免用户已保存的价格表失效。
+# 若要改 id，必须同步修改 lib/client.js 的 SETTINGS_NS 常量。
+#
+# 价格表本身存在这条条目的 config 里（Config 根级 .volatile()），
+# 由 config-editor 落盘到 <DSH_HOME>/profiles/<profile>/cordis.patch.yml。
+- insert:
+    - id: turn-cost
+      name: dsh-turn-price

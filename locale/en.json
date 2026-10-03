@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Turn Price",
+    "description": "Shows what each turn cost, in CNY, from per-model rates with peak / off-peak windows and limited-time promo pricing."
+  }
+}
