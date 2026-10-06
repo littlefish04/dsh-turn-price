@@ -1,6 +1,6 @@
 {
   "name": "dsh-turn-price",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "DeepSeek Harness (dsh) plugin: shows the CNY cost of every completed turn under the turn, from per-model cache-hit / cache-miss / cache-write / output rates, with weekly peak-valley multipliers and limited-time promo windows.",
   "license": "MIT",
   "author": "littlefish04",
@@ -80,7 +80,7 @@
     "off-peak"
   ],
   "scripts": {
-    "check": "node --check lib/index.js && node --check lib/client.js",
+    "check": "node --check lib/index.js && node --check lib/client.js && node --check lib/session-usage.js && node --check lib/http.js && node --check lib/ledger.js && node --check lib/balance.js && node --check lib/balance-runtime.js && node --check lib/child-usage.js",
     "prepack": "npm run check"
   }
 }
