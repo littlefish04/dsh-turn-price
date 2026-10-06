@@ -202,7 +202,7 @@ dsh-turn-price/
     ├── session-usage.js   # 每轮 token 的容错折叠（与官方 tokenUsage 投影语义一致）
     ├── child-usage.js     # 子代理会话枚举与用量投影（深度/数量/超时上限）
     ├── ledger.js          # 真实日账（余额观测差值法）+ 估算账 + 保留期 + 原子写/损坏恢复
-    ├── balance.js         # 12 个余额/额度适配器（解析纯函数 + 取数 + 错误分类）
+    ├── balance.js         # 14 个余额/额度适配器（解析纯函数 + 取数 + 错误分类 + 智谱额度→余额改道）
     ├── balance-runtime.js # 余额管理器：凭据 → 指纹分本 → 取数 → 观测入账 → 定时刷新
     ├── http.js            # 宿主侧 JSON-over-HTTP 小工具
     └── client.js          # 客户端半体：金额行 + 汇总行 + 设置页 4 卡片 + 价格引擎（唯一计价实现）
@@ -233,7 +233,7 @@ dsh-turn-price/
 
 ### 卡片 2：账户与余额
 
-余额来源列表（可增删），每行：启用开关、名称、适配器（12 个内置适配器 + `none`）、
+余额来源列表（可增删），每行：启用开关、名称、适配器（14 个内置适配器 + `none`）、
 匹配的 provider id（逗号分隔）、凭据名、Base URL，以及**测试连接**与**替换密钥**两个动作。
 
 - **API key 只写不读回**：存在 DSH 的凭据库里（`ctx.credentials`），不写进配置文件、不进账本、
@@ -242,6 +242,12 @@ dsh-turn-price/
 - `none` 适配器表示**该 provider 没有「用 API key 查余额」的接口**（火山方舟、OpenAI、Anthropic、
   Gemini、xAI…），界面显示 `—` 并只做探活 —— 不猜一个数字出来。
 - 额度型（智谱 / z.ai / Kimi Coding / MiniMax）显示**剩余百分比与重置时间**，并标明这不是钱。
+- ★ **智谱 GLM 是两套互不相通的接口**（2026-10-06 用真实 key 实测）：
+  `/api/monitor/usage/quota/limit` 只服务 **Coding Plan 订阅**账号（5h / 周额度），
+  其余账号一律回 `HTTP 200 {"code":500,"msg":"当前用户不存在coding plan"}`；
+  现金余额在 `/api/biz/account/query-customer-account-report`（`data.availableBalance`）。
+  所以适配器里既有「额度」也有「余额」两档，**额度档在遇到「没有 coding plan」时会自动改查余额**
+  （鉴权失败 / 网络故障 / 超时不会回退 —— 那些是真问题），并在明细里写明这次改道。
 - 刷新间隔默认 300 秒（60–3600），超时默认 8000 毫秒。
 
 ### 卡片 3：消费记录

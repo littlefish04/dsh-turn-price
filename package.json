@@ -1,6 +1,6 @@
 {
   "name": "dsh-turn-price",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "DeepSeek Harness (dsh) plugin: shows the CNY cost of every completed turn under the turn, from per-model cache-hit / cache-miss / cache-write / output rates, with weekly peak-valley multipliers and limited-time promo windows.",
   "license": "MIT",
   "author": "littlefish04",
