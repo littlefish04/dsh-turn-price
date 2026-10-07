@@ -40,21 +40,24 @@ jobs:
       - name: 语法自检
         run: npm run check
 
-      # 幂等守卫：tag 有可能指向一个「本机已经发布过」的版本 —— 例如 v0.2.3 只是回头补一个
-      # GitHub Release。这时再 publish 会被 registry 以 E409（版本已存在）拒绝，把整条流水线
-      # 染红，而其实什么都没坏。所以先问一句 registry：这个版本在不在了？
-      - name: 这个版本是否已经发布过
-        id: published
+      # 一次调用同时干两件事：
+      #   1) 版本号是新的 → 正常用 OIDC 可信发布（带 provenance）；
+      #   2) 版本号已存在（例如回头给本机发过的版本补 tag）→ registry 回 409，
+      #      这里视为「本来就不用发」而退出 0，流水线保持绿色。
+      # ⚠️ 顺带的好处：**能走到 409 就证明可信发布关系是通的** —— npm 必须先拿本工作流的
+      # OIDC 身份向 registry 换到一次性发布凭据，才会走到 PUT 这一步；没配好 Trusted Publisher
+      # 时根本到不了这里（报的是 Access token expired / E404）。所以这条日志就是配置的自检。
+      - name: 发布（版本已存在时视为成功 —— 顺便自检可信发布关系）
         run: |
-          version="$(node -p "require('./package.json').version")"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          if npm view "dsh-turn-price@$version" version >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::dsh-turn-price@$version 已经在 npm 上，跳过发布（幂等，不算失败）"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+          if output="$(npm publish --provenance --access public 2>&1)"; then
+            printf '%s\n' "$output"
+            echo "::notice::发布成功（OIDC 可信发布）。"
+            exit 0
           fi
-
-      - name: 发布
-        if: steps.published.outputs.exists != 'true'
-        run: npm publish --provenance --access public
+          printf '%s\n' "$output"
+          if printf '%s' "$output" | grep -qE 'previously published version|EPUBLISHCONFLICT|E409'; then
+            echo "::notice::该版本已经在 npm 上（registry 回了 409），跳过发布。能走到这一步即说明 OIDC 可信发布已打通。"
+            exit 0
+          fi
+          echo "::error::发布失败，且不是「版本已存在」——请看上面的 npm 输出。"
+          exit 1
