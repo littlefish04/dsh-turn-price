@@ -51,11 +51,15 @@ jobs:
           response="$(curl -sS -X POST -H "Authorization: Bearer ${id_token}" \
             "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/dsh-turn-price")"
           export response
-          ok="$(node -e 'const j=JSON.parse(process.env.response||"{}");process.stdout.write(typeof j.token==="string"&&j.token.startsWith("npm_")?"yes":"no")' 2>/dev/null || echo no)"
+          # 成功的回应长这样（token 会被 GitHub 自动打码）：
+          #   {"created":...,"expires":...,"token":"***","token_type":"oidc"}
+          # 判据只看「有没有换到非空的 token」——不要假设前缀（npm 没说一定是 npm_ 开头）。
+          ok="$(node -e 'const j=JSON.parse(process.env.response||"{}");process.stdout.write(typeof j.token==="string"&&j.token.length>0?"yes":"no")' 2>/dev/null || echo no)"
+          safe="$(node -e 'process.stdout.write((process.env.response||"").replace(/"token"\s*:\s*"[^"]*"/,"\"token\":\"<hidden>\""))' 2>/dev/null || echo '<无法解析的回应>')"
           if [ "$ok" = "yes" ]; then
-            echo "::notice::OIDC 可信发布自检通过 —— registry 用本工作流的身份换到了一次性发布凭据（没发布任何东西，凭据已丢弃）。"
+            echo "::notice::OIDC 可信发布自检通过 —— registry 用本工作流的身份换到了一次性发布凭据（回应：${safe}）。没发布任何东西，凭据已丢弃。"
           else
-            echo "::error::OIDC 可信发布自检失败，registry 的回应是 ${response}"
+            echo "::error::OIDC 可信发布自检失败，registry 的回应是 ${safe}"
             if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
               exit 1
             fi
