@@ -40,5 +40,21 @@ jobs:
       - name: 语法自检
         run: npm run check
 
+      # 幂等守卫：tag 有可能指向一个「本机已经发布过」的版本 —— 例如 v0.2.3 只是回头补一个
+      # GitHub Release。这时再 publish 会被 registry 以 E409（版本已存在）拒绝，把整条流水线
+      # 染红，而其实什么都没坏。所以先问一句 registry：这个版本在不在了？
+      - name: 这个版本是否已经发布过
+        id: published
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if npm view "dsh-turn-price@$version" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::dsh-turn-price@$version 已经在 npm 上，跳过发布（幂等，不算失败）"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: 发布
+        if: steps.published.outputs.exists != 'true'
         run: npm publish --provenance --access public
