@@ -81,6 +81,7 @@
   ],
   "scripts": {
     "check": "node --check lib/index.js && node --check lib/client.js && node --check lib/session-usage.js && node --check lib/http.js && node --check lib/ledger.js && node --check lib/balance.js && node --check lib/balance-runtime.js && node --check lib/child-usage.js",
+    "test": "node --test test/*.test.mjs",
     "prepack": "npm run check"
   }
 }
