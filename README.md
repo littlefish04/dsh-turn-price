@@ -33,21 +33,21 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) web 
 
 ### 装哪个版本
 
-**推荐 `0.2.4`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
-手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4`）：
+**推荐 `0.2.5`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
+手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4` / `0.2.5`）：
 
 ```powershell
-dsh plugin --profile desktop add dsh-turn-price@0.2.4
+dsh plugin --profile desktop add dsh-turn-price@0.2.5
 ```
 
 | 想要 | 版本号写 | 说明 |
 | --- | --- | --- |
-| **完整功能（推荐）** | `@0.2.4` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出 |
+| **完整功能（推荐）** | `@0.2.5` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出；修 DSH 0.2.2 账号路由余额与汇总明细浮层 |
 | 只要最初那版：每轮花费 + 价格表 | `@0.1.1` | 没有余额与日历；功能稳定，但不再更新 |
 | —— | `@0.1.0` | ⚠️ **不要装**：它会让 dsh 起不来（客户端模块 id 与包名不一致），0.1.1 就是修这个的 |
-| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.4），不走 npm |
+| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.5），不走 npm |
 
-- **建议钉死版本号**（写成 `dsh-turn-price@0.2.4`）。不写版本号会装 npm 上的 `latest`，
+- **建议钉死版本号**（写成 `dsh-turn-price@0.2.5`）。不写版本号会装 npm 上的 `latest`，
   而国内镜像（npmmirror）同步有延迟，裸包名可能解析到旧版。核对官方源上的最新版：
   ```powershell
   npm view dsh-turn-price version --registry https://registry.npmjs.org
@@ -56,7 +56,7 @@ dsh plugin --profile desktop add dsh-turn-price@0.2.4
   卸载重装不会丢）：
   ```powershell
   dsh plugin --profile desktop remove dsh-turn-price
-  dsh plugin --profile desktop add dsh-turn-price@0.2.4
+  dsh plugin --profile desktop add dsh-turn-price@0.2.5
   ```
 - 各版本要求的 dsh 版本都是 `>=0.2.0-rc.1 <0.3.0`（见〈兼容性与边界〉）；
   每一版改了什么见〈版本更新〉。
@@ -343,17 +343,27 @@ dsh-turn-price/
 
 | 版本 | 日期 | 一句话 |
 | --- | --- | --- |
-| **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名（**本地待发布**） |
-| **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层（npm 最新） |
+| **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名；修 DSH 0.2.2 账号路由下余额显示横杠、汇总明细弹到屏幕右侧（npm 最新） |
+| **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层 |
 | 0.2.3 | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复 |
 | 0.2.0 | 2026-10-06 | 余额 / 今日 / 本月 / 会话汇总、日账与消费日历上线；密钥写入保护 |
 | 0.1.1 | 2026-10-03 | 修 0.1.0「装完 dsh 起不来」 |
 | 0.1.0 | 2026-10-03 | 首个版本：每轮花费 + 价格表（**别装**，见下） |
 
-### 0.2.5 —— 子会话租约泄漏与子代理命名（2026-11-15，本地待发布）
+### 0.2.5 —— 子会话租约泄漏、DSH 0.2.2 余额与浮层修复（2026-11-15）
 
 **修复**
 
+- **DSH 0.2.2 账号路由下「余额」恒为 —（但今日真实花费正常）**：升级后当前会话 provider 是
+  `deepseek-account`（设置页里的「DeepSeek 账号」），而配置里保存的 `providerIds` 还是升级前的
+  `deepseek-official` / `deepseek`，两条启用的来源都精确匹配不上，`/state.json` 便回
+  `balanceReason:'no-source'`。余额取数和账本观测本身没问题，所以「今日真实花费」照常有数。
+  现在匹配规则是**精确命中优先**，没命中再按 `-account` 账户族兜底
+  （`deepseek-official` ↔ `deepseek-account`）；不用改用户已保存的配置。
+- **汇总明细弹到屏幕右侧、甚至撑出滚动条**：DSH 0.2.2 的输入区 `.composerSeat` 带
+  `will-change: transform`，它成了 `position: fixed` 后代的包含块，面板的视口坐标被又叠加了
+  一次输入区偏移。现在明细 `portal` 到 `document.body`，再按视口边界定位；
+  外点 / `Esc` / 缩放滚动重定位的行为不变。
 - **子会话 / 对账读出的 observation 租约一直没释放**：DSH 的 `SessionObservation` 只实现
   `[Symbol.dispose]`，**没有 `.dispose()`**；旧代码里的 `typeof observation.dispose === 'function'`
   恒为假，于是每次都静默跳过释放。冷会话的 prepared 观察是带引用计数的缓存租约，
