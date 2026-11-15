@@ -33,21 +33,21 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) web 
 
 ### 装哪个版本
 
-**推荐 `0.2.3`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
-手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3`）：
+**推荐 `0.2.4`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
+手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4`）：
 
 ```powershell
-dsh plugin --profile desktop add dsh-turn-price@0.2.3
+dsh plugin --profile desktop add dsh-turn-price@0.2.4
 ```
 
 | 想要 | 版本号写 | 说明 |
 | --- | --- | --- |
-| **完整功能（推荐）** | `@0.2.3` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出 |
+| **完整功能（推荐）** | `@0.2.4` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出 |
 | 只要最初那版：每轮花费 + 价格表 | `@0.1.1` | 没有余额与日历；功能稳定，但不再更新 |
 | —— | `@0.1.0` | ⚠️ **不要装**：它会让 dsh 起不来（客户端模块 id 与包名不一致），0.1.1 就是修这个的 |
-| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.3），不走 npm |
+| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.4），不走 npm |
 
-- **建议钉死版本号**（写成 `dsh-turn-price@0.2.3`）。不写版本号会装 npm 上的 `latest`，
+- **建议钉死版本号**（写成 `dsh-turn-price@0.2.4`）。不写版本号会装 npm 上的 `latest`，
   而国内镜像（npmmirror）同步有延迟，裸包名可能解析到旧版。核对官方源上的最新版：
   ```powershell
   npm view dsh-turn-price version --registry https://registry.npmjs.org
@@ -56,7 +56,7 @@ dsh plugin --profile desktop add dsh-turn-price@0.2.3
   卸载重装不会丢）：
   ```powershell
   dsh plugin --profile desktop remove dsh-turn-price
-  dsh plugin --profile desktop add dsh-turn-price@0.2.3
+  dsh plugin --profile desktop add dsh-turn-price@0.2.4
   ```
 - 各版本要求的 dsh 版本都是 `>=0.2.0-rc.1 <0.3.0`（见〈兼容性与边界〉）；
   每一版改了什么见〈版本更新〉。
@@ -343,11 +343,30 @@ dsh-turn-price/
 
 | 版本 | 日期 | 一句话 |
 | --- | --- | --- |
-| **0.2.3** | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复（目前最新） |
+| **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层（目前最新） |
+| 0.2.3 | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复 |
 | 0.2.0 | 2026-10-06 | 余额 / 今日 / 本月 / 会话汇总、日账与消费日历上线；密钥写入保护 |
 | 0.1.1 | 2026-10-03 | 修 0.1.0「装完 dsh 起不来」 |
 | 0.1.0 | 2026-10-03 | 首个版本：每轮花费 + 价格表（**别装**，见下） |
 
+### 0.2.4 —— 服务端价格表读取与汇总明细浮层（2026-11-15）
+
+**修复**
+
+- **设置页读不到服务端价格表（DSH 0.2.1 起）**：DSH 0.2.1 的 `ConfigFormSnapshot` 不再有 `mode` 字段，
+  旧的 `snap.mode === 'host'` 判据永远为假，于是 profile 里的价格表被忽略、保存悄悄只写进浏览器本地
+  （换窗口、清缓存就回默认值）。现在按 `status === 'ready'` 读取，`writable` 只约束保存；
+  初始表单也真正建立了订阅（此前 `next === form` 直接 `return`）。
+- **合并 PR #1 时写错的 `CSS_HASH`**：应为 `3a725db3e2c2`（`node tools/css-hash.mjs` 的结果）。
+
+**改进**
+
+- **汇总明细改成「按钮上方浮层」**：不再把面板塞进底栏往下撑；点面板外关闭、`Esc` 关闭并把焦点还给按钮，
+  窗口缩放/滚动时重新定位，窄屏不超出视口。
+
+**其它**
+
+- 新增 `test/config-store.test.mjs`（6 项）与 `npm test`。
 ### 0.2.3 —— 余额聚合、手工记账与刷新时序（2026-10-07）
 
 **新增**
