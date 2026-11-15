@@ -343,11 +343,36 @@ dsh-turn-price/
 
 | 版本 | 日期 | 一句话 |
 | --- | --- | --- |
-| **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层（目前最新） |
+| **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名（**本地待发布**） |
+| **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层（npm 最新） |
 | 0.2.3 | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复 |
 | 0.2.0 | 2026-10-06 | 余额 / 今日 / 本月 / 会话汇总、日账与消费日历上线；密钥写入保护 |
 | 0.1.1 | 2026-10-03 | 修 0.1.0「装完 dsh 起不来」 |
 | 0.1.0 | 2026-10-03 | 首个版本：每轮花费 + 价格表（**别装**，见下） |
+
+### 0.2.5 —— 子会话租约泄漏与子代理命名（2026-11-15，本地待发布）
+
+**修复**
+
+- **子会话 / 对账读出的 observation 租约一直没释放**：DSH 的 `SessionObservation` 只实现
+  `[Symbol.dispose]`，**没有 `.dispose()`**；旧代码里的 `typeof observation.dispose === 'function'`
+  恒为假，于是每次都静默跳过释放。冷会话的 prepared 观察是带引用计数的缓存租约，
+  被永久 pin 住后不参与淘汰 —— 长跑时内存只涨不跌。现在优先调 `[Symbol.dispose]()`，
+  并保留 `.dispose?.()` 给更早的版本兜底。`test-child-usage.mjs` 的假对象也改成同一形状，
+  并新增「每个租约都必须被释放」的断言。
+
+**改进**
+
+- **子代理显示名跟 DSH 对齐**：DSH 0.2.2-alpha.3 起 `subagents.listDescendants()` 的行带
+  `path`（形如 `reviewer/checker`，与 `list_agents` 同一套命名）和 `name`，`label` 对 one-shot
+  子代理变成可选。会话总计的子代理明细现在按 `path` → `name` → `label` 的顺序取名，
+  老会话（只有 label）行为不变。
+
+**其它**
+
+- 适配性核对：DSH 0.2.2-rc.3 上 `session/event`、`sessionQuery`、`subagents.listDescendants`、
+  `credentials`、`webServer.register`、三个插槽、`ConfigFormSnapshot` 均未变；
+  每轮用量与官方 `tokenUsage` 投影仍逐项相等（实测 `reconcile: match`）。
 
 ### 0.2.4 —— 服务端价格表读取与汇总明细浮层（2026-11-15）
 
