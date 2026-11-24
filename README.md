@@ -33,21 +33,21 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) web 
 
 ### 装哪个版本
 
-**推荐 `0.2.5`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
-手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4` / `0.2.5`）：
+**推荐 `0.2.6`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
+手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4` / `0.2.5` / `0.2.6`）：
 
 ```powershell
-dsh plugin --profile desktop add dsh-turn-price@0.2.5
+dsh plugin --profile desktop add dsh-turn-price@0.2.6
 ```
 
 | 想要 | 版本号写 | 说明 |
 | --- | --- | --- |
-| **完整功能（推荐）** | `@0.2.5` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出；修 DSH 0.2.2 账号路由余额与汇总明细浮层 |
+| **完整功能（推荐）** | `@0.2.6` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出；HTTP 路由接入 DSH Host/Origin 与登录 Cookie 检查 |
 | 只要最初那版：每轮花费 + 价格表 | `@0.1.1` | 没有余额与日历；功能稳定，但不再更新 |
 | —— | `@0.1.0` | ⚠️ **不要装**：它会让 dsh 起不来（客户端模块 id 与包名不一致），0.1.1 就是修这个的 |
-| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.5），不走 npm |
+| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.6），不走 npm |
 
-- **建议钉死版本号**（写成 `dsh-turn-price@0.2.5`）。不写版本号会装 npm 上的 `latest`，
+- **建议钉死版本号**（写成 `dsh-turn-price@0.2.6`）。不写版本号会装 npm 上的 `latest`，
   而国内镜像（npmmirror）同步有延迟，裸包名可能解析到旧版。核对官方源上的最新版：
   ```powershell
   npm view dsh-turn-price version --registry https://registry.npmjs.org
@@ -56,7 +56,7 @@ dsh plugin --profile desktop add dsh-turn-price@0.2.5
   卸载重装不会丢）：
   ```powershell
   dsh plugin --profile desktop remove dsh-turn-price
-  dsh plugin --profile desktop add dsh-turn-price@0.2.5
+  dsh plugin --profile desktop add dsh-turn-price@0.2.6
   ```
 - 各版本要求的 dsh 版本都是 `>=0.2.0-rc.1 <0.3.0`（见〈兼容性与边界〉）；
   每一版改了什么见〈版本更新〉。
@@ -343,12 +343,24 @@ dsh-turn-price/
 
 | 版本 | 日期 | 一句话 |
 | --- | --- | --- |
-| **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名；修 DSH 0.2.2 账号路由下余额显示横杠、汇总明细弹到屏幕右侧（npm 最新） |
+| **0.2.6** | 2026-11-24 | HTTP 路由接入 DSH 访问检查（`ctx.connection.requestRejection` + fail-closed）（npm 最新） |
+| **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名；修 DSH 0.2.2 账号路由下余额显示横杠、汇总明细弹到屏幕右侧 |
 | **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层 |
 | 0.2.3 | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复 |
 | 0.2.0 | 2026-10-06 | 余额 / 今日 / 本月 / 会话汇总、日账与消费日历上线；密钥写入保护 |
 | 0.1.1 | 2026-10-03 | 修 0.1.0「装完 dsh 起不来」 |
 | 0.1.0 | 2026-10-03 | 首个版本：每轮花费 + 价格表（**别装**，见下） |
+
+### 0.2.6 —— HTTP 路由接入 DSH 访问检查（2026-11-24）
+
+**安全加固**
+
+- **宿主 HTTP 路由（`/dsh-turn-price/*`）接入 DSH 准入与浏览器鉴权**：此前 `webServer.register`
+  挂载的路由未校验 Host / Origin 与登录 Cookie，浏览器里打开的其它页面理论上可直接调用本地端点。
+  现在每个请求进入路由分发前都会先经过 `ctx.connection.requestRejection(req)`（对齐 DSH 内置插件做法）：
+  - Host / Origin 不可信或 `sec-fetch-site: cross-site` → 直接返回 `403`；
+  - 未携带有效的 DSH 会话 Cookie → 直接返回 `401`；
+  - `connection` 服务未就绪或缺方法时按 fail-closed 返回 `503`，不放行任何请求。
 
 ### 0.2.5 —— 子会话租约泄漏、DSH 0.2.2 余额与浮层修复（2026-11-15）
 
