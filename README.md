@@ -33,21 +33,21 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) web 
 
 ### 装哪个版本
 
-**推荐 `0.2.6`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
-手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4` / `0.2.5` / `0.2.6`）：
+**推荐 `0.2.7`** —— 本文档〈它是怎么记账的〉〈设置页的 4 张卡片〉里写的余额、日账、消费日历、
+手工记账，都是 0.2.x 才有的（npm 上目前有 `0.1.0` / `0.1.1` / `0.2.3` / `0.2.4` / `0.2.5` / `0.2.6` / `0.2.7`）：
 
 ```powershell
-dsh plugin --profile desktop add dsh-turn-price@0.2.6
+dsh plugin --profile desktop add dsh-turn-price@0.2.7
 ```
 
 | 想要 | 版本号写 | 说明 |
 | --- | --- | --- |
-| **完整功能（推荐）** | `@0.2.6` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出；HTTP 路由接入 DSH Host/Origin 与登录 Cookie 检查 |
+| **完整功能（推荐）** | `@0.2.7` | 余额 / 今日 / 本月 / 会话汇总、消费日历、手工记账、日账导出；修配置含限时特价时设置页卡在「正在连接设置服务…」 |
 | 只要最初那版：每轮花费 + 价格表 | `@0.1.1` | 没有余额与日历；功能稳定，但不再更新 |
 | —— | `@0.1.0` | ⚠️ **不要装**：它会让 dsh 起不来（客户端模块 id 与包名不一致），0.1.1 就是修这个的 |
-| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.6），不走 npm |
+| 从 git 仓库装 | 不写版本号：`github:littlefish04/dsh-turn-price` | 取 `main` 分支的当前内容（当前 = 0.2.7），不走 npm |
 
-- **建议钉死版本号**（写成 `dsh-turn-price@0.2.6`）。不写版本号会装 npm 上的 `latest`，
+- **建议钉死版本号**（写成 `dsh-turn-price@0.2.7`）。不写版本号会装 npm 上的 `latest`，
   而国内镜像（npmmirror）同步有延迟，裸包名可能解析到旧版。核对官方源上的最新版：
   ```powershell
   npm view dsh-turn-price version --registry https://registry.npmjs.org
@@ -56,7 +56,7 @@ dsh plugin --profile desktop add dsh-turn-price@0.2.6
   卸载重装不会丢）：
   ```powershell
   dsh plugin --profile desktop remove dsh-turn-price
-  dsh plugin --profile desktop add dsh-turn-price@0.2.6
+  dsh plugin --profile desktop add dsh-turn-price@0.2.7
   ```
 - 各版本要求的 dsh 版本都是 `>=0.2.0-rc.1 <0.3.0`（见〈兼容性与边界〉）；
   每一版改了什么见〈版本更新〉。
@@ -343,13 +343,27 @@ dsh-turn-price/
 
 | 版本 | 日期 | 一句话 |
 | --- | --- | --- |
-| **0.2.6** | 2026-11-24 | HTTP 路由接入 DSH 访问检查（`ctx.connection.requestRejection` + fail-closed）（npm 最新） |
+| **0.2.7** | 2026-11-24 | 修配置含限时特价（`promos`）时设置页永久卡在「正在连接设置服务…」（npm 最新） |
+| **0.2.6** | 2026-11-24 | HTTP 路由接入 DSH 访问检查（`ctx.connection.requestRejection` + fail-closed） |
 | **0.2.5** | 2026-11-15 | 修子会话观察租约泄漏；子代理显示名改用 DSH 0.2.2 的新命名；修 DSH 0.2.2 账号路由下余额显示横杠、汇总明细弹到屏幕右侧 |
 | **0.2.4** | 2026-11-15 | 设置页读不到服务端价格表（DSH 0.2.1 起）修好；汇总明细改成上方浮层 |
 | 0.2.3 | 2026-10-07 | 多来源余额聚合 + 手工记账改版 + 一批真 bug 修复 |
 | 0.2.0 | 2026-10-06 | 余额 / 今日 / 本月 / 会话汇总、日账与消费日历上线；密钥写入保护 |
 | 0.1.1 | 2026-10-03 | 修 0.1.0「装完 dsh 起不来」 |
 | 0.1.0 | 2026-10-03 | 首个版本：每轮花费 + 价格表（**别装**，见下） |
+
+### 0.2.7 —— 修配置含限时特价时设置页卡在「正在连接设置服务…」（2026-11-24）
+
+**修复**
+
+- **配置中存在非空限时特价（`promos`）时，设置页永久显示「正在连接设置服务…」并退回 `localStorage`**：
+  宿主对 `promos` 的 `from`/`to` 字段原本在最外层包了 `z.transform(z.union([z.string(), z.date()]), ...)`；
+  DSH 设置框架把 schema 通过 `toJSON()` 序列化传给浏览器时会丢弃 `transform` 回调函数，
+  前端 `@deepseek-ai/dsh-client-ui-settings` 在 `rehydrate` 后校验 `view.value` 时，
+  只要 `promos` 数组中存在条目就会执行到丢失回调的 `transform` 节点并抛出 `TypeError: callback is not a function`，
+  致使 `decode()` 返回 `undefined`、表单快照状态永远停在 `'loading'`。
+  现改为 `z.union([z.string(), z.transform(z.is(Date), yamlDateText, true)])`：
+  宿主仍兼容未加引号的 YAML 日期并归一为墙上时间字符串，传到前端的字符串值则直接命中首分支 `z.string()`。
 
 ### 0.2.6 —— HTTP 路由接入 DSH 访问检查（2026-11-24）
 
